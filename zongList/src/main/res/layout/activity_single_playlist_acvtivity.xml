@@ -1,0 +1,26 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.zonglist.SinglePlaylistAcvtivity">
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Download all"
+        android:id="@+id/action_download_all"
+        android:background="#adadad"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:textColor="#fff"
+        android:onClick="castDownloadEntirePlaylist"
+        android:drawableBottom="@drawable/ic_action_download"
+        />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/playlist_songs"
+        />
+</LinearLayout>

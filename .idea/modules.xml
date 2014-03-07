@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/ZongList.iml" filepath="$PROJECT_DIR$/ZongList.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zongList/zongList.iml" filepath="$PROJECT_DIR$/zongList/zongList.iml" />
+    </modules>
+  </component>
+</project>
+
