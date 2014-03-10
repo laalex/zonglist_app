@@ -34,7 +34,8 @@ public class LoginAsync extends AsyncTask<String,JSONObject,JSONObject> {
     }
 
     protected JSONObject doInBackground(String... params) {
-    UserFunctions userFunction = new UserFunctions();
+        LoginActivity.hideLoginerror();
+        UserFunctions userFunction = new UserFunctions();
         if (params.length != 2)
             return null;
         JSONObject json = userFunction.loginUser(params[0], params[1]);
@@ -43,7 +44,7 @@ public class LoginAsync extends AsyncTask<String,JSONObject,JSONObject> {
     protected void onPostExecute(JSONObject json) {
         // check for login response
         try {
-            LoginActivity.hideLoginerror();
+
             Log.e("JSON",json.getString("logged_in"));
             if ((json.getString("logged_in") != null) && (!json.getString("logged_in").equals("false"))) {
                 Log.e("Got into creating db","1");

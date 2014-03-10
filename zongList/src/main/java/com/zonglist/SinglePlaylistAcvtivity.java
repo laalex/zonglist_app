@@ -2,9 +2,15 @@ package com.zonglist;
 
 import android.app.ActionBar;
 import android.app.ListActivity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TaskStackBuilder;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
@@ -22,6 +28,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zonglist.library.APIObject;
 import com.zonglist.library.DatabaseHandler;
@@ -43,12 +50,18 @@ import java.util.HashMap;
 import static android.os.Environment.getExternalStorageDirectory;
 
 public class SinglePlaylistAcvtivity extends ActionBarActivity {
+    public int numOfTasks = 0;
     DatabaseHandler db;
     ProgressDialog preloader;
+    ListAdapter adapter;
     ListView list;
     TextView title;
+    String list_id;
+    String list_name;
     Button viewList;
     ArrayList<HashMap<String,String>> songs = new ArrayList<HashMap<String,String>>();
+
+    public String[] thisUrl;
 
     String storageLocation;
 
@@ -62,27 +75,27 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_playlist_acvtivity);
 
-        Intent intent = getIntent();
-        String list_id = intent.getStringExtra("playlist_id");
-        String list_name = intent.getStringExtra("list_name");
+        if(ICBootstrap(this)) {
 
-        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Playlist information");
-        actionBar.setSubtitle(list_name);
-        actionBar.setDisplayHomeAsUpEnabled(true);
+            Intent intent = getIntent();
+            list_id = intent.getStringExtra("playlist_id");
+            list_name = intent.getStringExtra("list_name");
 
-        preloader = new ProgressDialog(this);
-        preloader.setIndeterminate(false);
-        preloader.setMax(100);
-        preloader.setProgress(0);
-        preloader.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        preloader.setTitle("Downloading your song");
+            android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+            actionBar.setTitle(list_name);
+            actionBar.setDisplayHomeAsUpEnabled(true);
 
-        storageLocation = Environment.getExternalStorageDirectory().toString();
+            preloader = new ProgressDialog(this);
+            preloader.setIndeterminate(false);
+            preloader.setCancelable(false);
 
-        db = new DatabaseHandler(getApplicationContext());
+            storageLocation = Environment.getExternalStorageDirectory().toString();
 
-        new LoadPlaylistAsync().execute(list_id);
+            db = new DatabaseHandler(getApplicationContext());
+
+            new LoadPlaylistAsync().execute(list_id);
+
+        }
 
     }
 
@@ -118,12 +131,33 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
 
 
     /* Download entire playlist at once */
-    public void castDownloadEntirePlaylist(){
+    public void castDownloadPlaylist(View view){
         if(list != null){
             //The list is not empty: Get forward and download all the songs
-            Log.e("List data",list.toString());
+            Integer count = adapter.getCount();//Get the number of songs
+            preloader.setMax(0);
+            preloader.setProgress(0);
+            preloader.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            preloader.setTitle("Downloading playlist: "+list_name);
+            preloader.show();
+            for(int i = 0; i<count;i++){
+                HashMap<String,String> song = ((HashMap<String,String>)adapter.getItem(i));
+                //Song represents the details of the current song
+                new DownloadFile().execute(song.get("song_name"),"true");
+            }
+            //Delay for a few seconds
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    preloader.dismiss();
+                    Toast.makeText(getApplicationContext(), "Your playlist "+list_name+" is being downloaded in background. Please wait or close the application. You will be notified when the playlist will be downloaded",
+                            5000).show();
+                }
+            }, 3000);
+
         } else {
-            return;
+            Button dld = (Button) findViewById(R.id.action_download_all);
+            dld.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -157,7 +191,7 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
                     map.put(S_DOWNLOAD,s_down);
                     songs.add(map);
                     list = (ListView) findViewById(R.id.playlist_songs);
-                    ListAdapter adapter = new SimpleAdapter(SinglePlaylistAcvtivity.this,songs,R.layout.single_song_list,
+                    adapter = new SimpleAdapter(SinglePlaylistAcvtivity.this,songs,R.layout.single_song_list,
                             new String[] {S_NAME}, new int[] {R.id.song_name});
                     list.setAdapter(adapter);
 
@@ -170,6 +204,10 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
                             String song_name = val.get(S_NAME);
                             String download_url = val.get(S_DOWNLOAD);
                             //Fire download on this song
+                            preloader.setMax(100);
+                            preloader.setProgress(0);
+                            preloader.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                            preloader.setTitle("Downloading: "+song_name);
                             preloader.show();
                             new DownloadFile().execute(song_name);
                         }
@@ -188,9 +226,11 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
 
 
     private class DownloadFile extends AsyncTask<String, Integer, String>{
+
         @Override
         protected String doInBackground(String... url) {
             int count;
+            thisUrl = url;
             try {
                 //Get user ID
                 HashMap<String, String> user = db.getUserDetails();
@@ -201,19 +241,24 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
                 int lenghtOfFile = conn.getContentLength();
                 // downlod the file
                 InputStream input = new BufferedInputStream(mp3url.openStream());
-                Log.e("Storage location:",storageLocation);
                 OutputStream output = new FileOutputStream(storageLocation+"/Download/"+url[0].replace(' ','_'));
                 byte data[] = new byte[1024];
                 long total = 0;
                 while ((count = input.read(data)) != -1) {
                     total += count;
                     // publishing the progress....
-                    publishProgress((int)(total*100/lenghtOfFile));
+                    if(url[1] == null || !url[1].equals("true")) {
+                        publishProgress((int) (total * 100 / lenghtOfFile));
+                    }
                     output.write(data, 0, count);
                 }
                 output.flush();
                 output.close();
                 input.close();
+                removeTask();
+                if(thisUrl[1] != null && thisUrl[1].equals("true")){
+                    allTasksComplete();
+                }
             } catch (Exception e) {}
 
             dismissProgress();
@@ -222,9 +267,15 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
 
         @Override
         protected void onProgressUpdate(Integer... values){
-            Log.e("Progress changed","inc");
             preloader.setProgress(values[0]);
         }
+
+        @Override
+        protected void onPreExecute(){
+            addTask();
+        }
+
+
     }
 
     public void setProgress(Integer progress){
@@ -232,7 +283,65 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
     }
 
     public void dismissProgress(){
+        preloader.setProgress(0);
         preloader.dismiss();
+    }
+
+    public void addTask(){
+        numOfTasks++;
+    }
+
+    public void removeTask(){
+        numOfTasks--;
+    }
+
+    public void allTasksComplete(){
+
+        if(numOfTasks ==0){
+
+            //do what you want to do if all tasks are finished
+            Intent intent = new Intent(this, PlayLists.class);
+            PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+            // Build notification
+            // Actions are just fake
+            Notification noti = new Notification.Builder(getApplicationContext())
+                    .setContentTitle("Your playlist has been downloaded!")
+                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setContentText(list_name + " is now on your Downloads folder")
+                    .setContentIntent(pIntent).build();
+            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            // hide the notification after its selected
+            noti.flags |= Notification.FLAG_AUTO_CANCEL;
+
+            notificationManager.notify(0, noti);
+
+            Log.e("Download tasks completed","true");
+        }
+
+    }
+
+    public boolean ICBootstrap(Context context){
+        if(!isNetworkConnected()){
+            //Not connected to the internet. Go to the no internet activity
+            Intent intent = new Intent(context,NoConnection.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(this.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null) {
+            // There are no active networks.
+            return false;
+        } else
+            return true;
     }
 
 }

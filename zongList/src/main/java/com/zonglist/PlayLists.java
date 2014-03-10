@@ -5,6 +5,8 @@ import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
@@ -46,22 +48,25 @@ public class PlayLists extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActionBar actionBar = getActionBar();
-        actionBar.setTitle("ZongList");
-        actionBar.setSubtitle("Select playlist");
-        //Check login
-        userFunctions = new UserFunctions();
-        if(userFunctions.isUserLoggedIn(getApplicationContext())){
-            //User is logged in
-            setContentView(R.layout.activity_play_lists);
-            new LoadPlaylistAsync().execute();
-        } else {
-            //User is not logged in -> Redirect to the login activity
-            Intent login = new Intent(getApplicationContext(), LoginActivity.class);
-            login.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(login);
-            //Closing dashboard screen
-            finish();
+
+        if(ICBootstrap(this)) {
+
+            ActionBar actionBar = getActionBar();
+            actionBar.setTitle("Select playlist");
+            //Check login
+            userFunctions = new UserFunctions();
+            if (userFunctions.isUserLoggedIn(getApplicationContext())) {
+                //User is logged in
+                setContentView(R.layout.activity_play_lists);
+                new LoadPlaylistAsync().execute();
+            } else {
+                //User is not logged in -> Redirect to the login activity
+                Intent login = new Intent(getApplicationContext(), LoginActivity.class);
+                login.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(login);
+                //Closing dashboard screen
+                finish();
+            }
         }
     }
 
@@ -160,6 +165,29 @@ public class PlayLists extends ActionBarActivity {
         }
 
 
+    }
+
+    public boolean ICBootstrap(Context context){
+        if(!isNetworkConnected()){
+            //Not connected to the internet. Go to the no internet activity
+            Intent intent = new Intent(context,NoConnection.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(this.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null) {
+            // There are no active networks.
+            return false;
+        } else
+            return true;
     }
 
 }

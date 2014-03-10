@@ -4,8 +4,19 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="15dp"
+    android:layout_centerVertical="true"
+    android:layout_centerHorizontal="true"
+    android:background="@drawable/app_bg_image"
     >
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/login_error"
+        style="@style/error_box"
+        android:layout_marginTop="0dp"
+        android:visibility="invisible"
+        />
 
     <EditText
         android:layout_width="match_parent"
@@ -33,12 +44,5 @@
         style="@style/loginButton"
         android:layout_gravity="center_horizontal" />
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/login_error"
-        style="@style/error_box"
-        android:visibility="visible"
-        />
 
 </LinearLayout>

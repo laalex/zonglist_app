@@ -5,7 +5,6 @@
         parent="@style/Theme.AppCompat.Light.DarkActionBar">
         <item name="android:actionBarStyle">@style/ZActionBar</item>
         <item name="android:actionMenuTextColor">@color/actionbar_text</item>
-
         <!-- Support library compatibility -->
         <item name="actionBarStyle">@style/ZActionBar</item>
     </style>
@@ -14,7 +13,6 @@
     <style name="ZActionBar"
         parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
         <item name="android:background">#fdae3c</item>
-
         <!-- Support library compatibility -->
         <item name="background">@drawable/actionbar_background</item>
     </style>
