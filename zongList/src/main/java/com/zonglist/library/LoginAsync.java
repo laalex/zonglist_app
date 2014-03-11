@@ -45,9 +45,8 @@ public class LoginAsync extends AsyncTask<String,JSONObject,JSONObject> {
         // check for login response
         try {
 
-            Log.e("JSON",json.getString("logged_in"));
+
             if ((json.getString("logged_in") != null) && (!json.getString("logged_in").equals("false"))) {
-                Log.e("Got into creating db","1");
                 //We are logged in -> Add the user to the database and head to the dashboard
                 JSONObject user = json.getJSONObject("user");
                 UserFunctions userFunction = new UserFunctions();

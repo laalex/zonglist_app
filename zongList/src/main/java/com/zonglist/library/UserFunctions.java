@@ -35,8 +35,7 @@ public class UserFunctions {
         params.add(new BasicNameValuePair("user", email));
         params.add(new BasicNameValuePair("pass", password));
         JSONObject json = jsonParser.getJSONFromUrl(loginURL, params);
-        // return json
-        // Log.e("JSON", json.toString());
+        //Return result
         return json;
     }
 

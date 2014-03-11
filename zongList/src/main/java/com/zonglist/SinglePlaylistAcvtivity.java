@@ -52,7 +52,6 @@ import static android.os.Environment.getExternalStorageDirectory;
 public class SinglePlaylistAcvtivity extends ActionBarActivity {
     public int numOfTasks = 0;
     DatabaseHandler db;
-    ProgressDialog preloader;
     ListAdapter adapter;
     ListView list;
     TextView title;
@@ -69,6 +68,8 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
     private static final String S_ID = "song_id";
     private static final String S_DOWNLOAD = "download_url";
 
+    public ProgressDialog progress1,progress2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -76,7 +77,10 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
         setContentView(R.layout.activity_single_playlist_acvtivity);
 
         if(ICBootstrap(this)) {
-
+            progress1 = new ProgressDialog(this);
+            progress2 = new ProgressDialog(this);
+            progress1.setCancelable(false);progress2.setCancelable(false);
+            progress1.setIndeterminate(true);progress2.setIndeterminate(false);
             Intent intent = getIntent();
             list_id = intent.getStringExtra("playlist_id");
             list_name = intent.getStringExtra("list_name");
@@ -84,10 +88,6 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
             android.support.v7.app.ActionBar actionBar = getSupportActionBar();
             actionBar.setTitle(list_name);
             actionBar.setDisplayHomeAsUpEnabled(true);
-
-            preloader = new ProgressDialog(this);
-            preloader.setIndeterminate(false);
-            preloader.setCancelable(false);
 
             storageLocation = Environment.getExternalStorageDirectory().toString();
 
@@ -135,11 +135,12 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
         if(list != null){
             //The list is not empty: Get forward and download all the songs
             Integer count = adapter.getCount();//Get the number of songs
-            preloader.setMax(0);
-            preloader.setProgress(0);
-            preloader.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            preloader.setTitle("Downloading playlist: "+list_name);
-            preloader.show();
+            progress1.setMax(0);
+            progress1.setProgress(0);
+            progress1.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progress1.setTitle("Downloading playlist: " + list_name);
+            progress1.setMessage("The songs from this playlist are being downloaded in background.");
+            progress1.show();
             for(int i = 0; i<count;i++){
                 HashMap<String,String> song = ((HashMap<String,String>)adapter.getItem(i));
                 //Song represents the details of the current song
@@ -149,9 +150,9 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    preloader.dismiss();
-                    Toast.makeText(getApplicationContext(), "Your playlist "+list_name+" is being downloaded in background. Please wait or close the application. You will be notified when the playlist will be downloaded",
-                            5000).show();
+                    progress1.dismiss();
+                    Toast.makeText(getApplicationContext(), "Your data is downloaded in background.",
+                            Toast.LENGTH_LONG).show();
                 }
             }, 3000);
 
@@ -204,11 +205,11 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
                             String song_name = val.get(S_NAME);
                             String download_url = val.get(S_DOWNLOAD);
                             //Fire download on this song
-                            preloader.setMax(100);
-                            preloader.setProgress(0);
-                            preloader.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                            preloader.setTitle("Downloading: "+song_name);
-                            preloader.show();
+                            progress2.setMax(100);
+                            progress2.setProgress(0);
+                            progress2.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                            progress2.setTitle("Downloading: " + song_name);
+                            progress2.show();
                             new DownloadFile().execute(song_name);
                         }
                     });
@@ -242,16 +243,16 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
                 // downlod the file
                 InputStream input = new BufferedInputStream(mp3url.openStream());
                 OutputStream output = new FileOutputStream(storageLocation+"/Download/"+url[0].replace(' ','_'));
+                //Log.e("DOWNLOADING_ASYNC",url[1].toString());
                 byte data[] = new byte[1024];
                 long total = 0;
                 while ((count = input.read(data)) != -1) {
                     total += count;
-                    // publishing the progress....
-                    if(url[1] == null || !url[1].equals("true")) {
-                        publishProgress((int) (total * 100 / lenghtOfFile));
-                    }
+                    publishProgress((int) (total * 100 / lenghtOfFile));
+
                     output.write(data, 0, count);
                 }
+                progress2.dismiss();
                 output.flush();
                 output.close();
                 input.close();
@@ -261,13 +262,13 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
                 }
             } catch (Exception e) {}
 
-            dismissProgress();
+
             return null;
         }
 
         @Override
         protected void onProgressUpdate(Integer... values){
-            preloader.setProgress(values[0]);
+            progress2.setProgress(values[0]);
         }
 
         @Override
@@ -278,14 +279,7 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
 
     }
 
-    public void setProgress(Integer progress){
-        preloader.setProgress(progress);
-    }
 
-    public void dismissProgress(){
-        preloader.setProgress(0);
-        preloader.dismiss();
-    }
 
     public void addTask(){
         numOfTasks++;
