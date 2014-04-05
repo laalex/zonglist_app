@@ -12,9 +12,9 @@
     <!-- ActionBar styles -->
     <style name="ZActionBar"
         parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
-        <item name="android:background">#fdae3c</item>
+        <item name="android:background">#333</item>
         <!-- Support library compatibility -->
-        <item name="background">@drawable/actionbar_background</item>
+        <!--<item name="background">@drawable/actionbar_background</item>-->
     </style>
 
 

@@ -3,24 +3,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#e5e5e5"
     tools:context="com.zonglist.SinglePlaylistAcvtivity">
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Download all"
+        android:text="Download playlist"
         android:id="@+id/action_download_all"
-        android:background="#adadad"
+        android:background="#0099cc"
         android:paddingTop="5dp"
         android:paddingBottom="5dp"
         android:textColor="#fff"
         android:onClick="castDownloadPlaylist"
-        android:drawableBottom="@drawable/ic_action_download"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="12dp"
+        android:textAlignment="gravity"
         />
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/playlist_songs"
+        android:divider="@null"
+        android:dividerHeight="7dp"
+        android:padding="15dp"
         />
 </LinearLayout>
