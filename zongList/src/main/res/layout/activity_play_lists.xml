@@ -11,7 +11,6 @@
         android:layout_height="fill_parent"
         android:id="@+id/my_playlists"
         android:divider="@null"
-        android:dividerHeight="7dp"
-        android:layout_margin="10dp" />
+        android:dividerHeight="1dp" />
 
 </LinearLayout>

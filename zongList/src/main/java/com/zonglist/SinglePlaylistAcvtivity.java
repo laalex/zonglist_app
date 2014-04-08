@@ -7,10 +7,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TaskStackBuilder;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
@@ -39,6 +41,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -67,6 +70,11 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
     private static final String S_NAME = "song_name";
     private static final String S_ID = "song_id";
     private static final String S_DOWNLOAD = "download_url";
+    private static final String S_STATUS = "is_downloaded";
+    private static final String S_VID = "video_id";
+
+    private final String API_HOST = "http://10.42.0.1/api/";
+    private final String HOST = "http://10.42.0.1/";
 
     public ProgressDialog progress1,progress2;
 
@@ -144,7 +152,7 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
             for(int i = 0; i<count;i++){
                 HashMap<String,String> song = ((HashMap<String,String>)adapter.getItem(i));
                 //Song represents the details of the current song
-                new DownloadFile().execute(song.get("song_name"),"true");
+                new DownloadFile().execute(song.get("download_url"),"true",song.get("song_name"));
             }
             //Delay for a few seconds
             new Handler().postDelayed(new Runnable() {
@@ -184,33 +192,83 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
                     JSONObject j = data.getJSONObject(i);
                     String s_name = j.getString(S_NAME);
                     s_name = s_name.replace('_',' ');//Replace the underlines
+                    s_name = s_name.replace("-"+j.getString(S_VID)+".mp3","");
                     String s_id = j.getString(S_ID);
                     String s_down = j.getString(S_DOWNLOAD);
+                    String s_isdown = j.getString(S_STATUS);
+                    //Check if s_isdown == 0 or 1 and build the required message
+                    if(s_isdown.equals("0")){
+                        s_isdown = "Inactive";
+                    } else {
+                        s_isdown = "Active";
+                    }
                     HashMap<String,String> map = new HashMap<String, String>();
                     map.put(S_NAME,s_name);
                     map.put(S_ID,s_id);
                     map.put(S_DOWNLOAD,s_down);
+                    map.put(S_STATUS,s_isdown);
                     songs.add(map);
                     list = (ListView) findViewById(R.id.playlist_songs);
                     adapter = new SimpleAdapter(SinglePlaylistAcvtivity.this,songs,R.layout.single_song_list,
-                            new String[] {S_NAME}, new int[] {R.id.song_name});
+                            new String[] {S_NAME,S_STATUS}, new int[] {R.id.song_name,R.id.song_status});
                     list.setAdapter(adapter);
 
-
+                    /** Set click listener for the buttons in the view */
                     list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
-                        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                            HashMap<String,String> val = (HashMap<String,String>)list.getItemAtPosition(i);
-                            String song_id = val.get(S_ID);
-                            String song_name = val.get(S_NAME);
-                            String download_url = val.get(S_DOWNLOAD);
-                            //Fire download on this song
-                            progress2.setMax(100);
-                            progress2.setProgress(0);
-                            progress2.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                            progress2.setTitle("Downloading: " + song_name);
-                            progress2.show();
-                            new DownloadFile().execute(song_name);
+                        public void onItemClick(AdapterView<?> parent, View view, int i, long l) {
+                            final int pos_i = i;
+                            final long pos_l = l;
+
+                            final HashMap<String,String> val = (HashMap<String,String>)list.getItemAtPosition(pos_i);
+
+                            final TextView song_download_action = (TextView) view.findViewById(R.id.song_download_action);
+                            song_download_action.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    String song_name = val.get(S_NAME);
+                                    String download_url = val.get(S_DOWNLOAD);
+                                    progress2.setMax(100);
+                                    progress2.setProgress(0);
+                                    progress2.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                    progress2.setTitle("Downloading: " + song_name);
+                                    progress2.show();
+                                    new DownloadFile().execute(download_url);
+                                }
+                            });
+
+                            final TextView youtube_view = (TextView) view.findViewById(R.id.youtube_view);
+                            youtube_view.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    String video_id = val.get(S_VID);
+                                    try{
+                                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + video_id));
+                                        startActivity(intent);
+                                    }catch (ActivityNotFoundException ex){
+                                        Intent intent=new Intent(Intent.ACTION_VIEW,
+                                                Uri.parse("http://www.youtube.com/watch?v="+video_id));
+                                        startActivity(intent);
+                                    }
+                                }
+                            });
+
+                            final TextView song_status = (TextView) view.findViewById(R.id.song_status);
+                            song_status.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    String status = val.get(S_STATUS);
+                                    String msg;
+                                    Log.d("STATUS",status);
+                                    if(status.equals("Inactive")){ msg = "The song cache has expired. The download will take a little bit longer"; }
+                                    else { msg = "The song can be downloaded immediately!"; }
+                                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                            /*Fire download on this song
+
+                            */
                         }
                     });
 
@@ -235,15 +293,25 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
             try {
                 //Get user ID
                 HashMap<String, String> user = db.getUserDetails();
-                URL mp3url = new URL("http://stardust.alexandrulamba.com/youtube2mp3/downloads/"+user.get("uid")+"/"+url[0].replace(' ','_'));
+                URL mp3url = new URL(HOST+"download/hash/"+url[0]+"/"+user.get("uid")+"/MOBILE_ALLOWED_FROM");
                 URLConnection conn = mp3url.openConnection();
                 conn.connect();
                 // this will be useful so that you can show a tipical 0-100% progress bar
                 int lenghtOfFile = conn.getContentLength();
                 // downlod the file
                 InputStream input = new BufferedInputStream(mp3url.openStream());
-                OutputStream output = new FileOutputStream(storageLocation+"/Download/"+url[0].replace(' ','_'));
-                //Log.e("DOWNLOADING_ASYNC",url[1].toString());
+                String songName = "";
+                if(!url[2].equals(null)){
+                    //Then we have the song name
+                    songName = url[2]+"[www.zonglist.com].mp3";
+                } else {
+                    songName = url[0]+"[www.zonglist.com].mp3";
+                }
+                //Check if ZongList directory exists
+                if(!new File(storageLocation+"/ZongList").exists()){
+                    new File(storageLocation+"/ZongList").mkdir();
+                }
+                OutputStream output = new FileOutputStream(storageLocation+"/ZongList/"+songName);
                 byte data[] = new byte[1024];
                 long total = 0;
                 while ((count = input.read(data)) != -1) {

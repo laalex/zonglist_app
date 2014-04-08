@@ -42,6 +42,8 @@ public class PlayLists extends ActionBarActivity {
 
     private static final String PL_NAME = "name";
     private static final String PL_ID = "list_id";
+    private static final String PL_COUNT ="count";
+    private static final String PL_CREATED ="date_created";
 
     UserFunctions userFunctions;
 
@@ -132,13 +134,17 @@ public class PlayLists extends ActionBarActivity {
                     JSONObject j = data.getJSONObject(i);
                     String pl_name = j.getString(PL_NAME);
                     String pl_id = j.getString(PL_ID);
+                    String count = j.getString(PL_COUNT);
+                    String date_created = j.getString(PL_CREATED);
                     HashMap<String,String> map = new HashMap<String, String>();
                     map.put(PL_NAME,pl_name);
                     map.put(PL_ID,pl_id);
+                    map.put(PL_COUNT,count);
+                    map.put(PL_CREATED,date_created);
                     playlists.add(map);
                     list = (ListView) findViewById(R.id.my_playlists);
                     ListAdapter adapter = new SimpleAdapter(PlayLists.this,playlists,R.layout.dash_playlist_item,
-                            new String[] {PL_NAME}, new int[] {R.id.playlist_name});
+                            new String[] {PL_NAME,PL_COUNT,PL_CREATED}, new int[] {R.id.playlist_name,R.id.playlist_count,R.id.date_created});
                     list.setAdapter(adapter);
 
                     list.setOnItemClickListener(new AdapterView.OnItemClickListener() {

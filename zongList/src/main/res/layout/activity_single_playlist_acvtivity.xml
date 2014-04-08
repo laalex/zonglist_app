@@ -27,7 +27,5 @@
         android:layout_height="wrap_content"
         android:id="@+id/playlist_songs"
         android:divider="@null"
-        android:dividerHeight="7dp"
-        android:padding="15dp"
         />
 </LinearLayout>

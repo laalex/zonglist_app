@@ -27,16 +27,18 @@ import android.content.Context;
 import android.util.Log;
 
 public class APIObject{
+    private final String API_HOST = "http://10.42.0.1/api/";
     Context context;
     private JSONParser jsonParser;
     DatabaseHandler db;
     HashMap<String, String> user;
+
     public APIObject(){
         jsonParser = new JSONParser();
     }
 
     public JSONObject getPlaylists(Context context){
-        String endpoint = "http://stardust.alexandrulamba.com/youtube2mp3/api/get_playlists";
+        String endpoint = API_HOST+"get_playlists";
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         db = new DatabaseHandler(context);
         HashMap<String, String> user = db.getUserDetails();
@@ -47,7 +49,7 @@ public class APIObject{
     }
 
     public JSONObject getPlaylist(Context context, String list_id){
-        String endpoint = "http://stardust.alexandrulamba.com/youtube2mp3/api/get_playlist_songs/"+list_id;
+        String endpoint = API_HOST+"get_playlist_songs/"+list_id;
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         db = new DatabaseHandler(context);
         HashMap<String, String> user = db.getUserDetails();

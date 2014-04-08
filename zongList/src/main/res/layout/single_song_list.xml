@@ -38,8 +38,8 @@
                 android:layout_height="wrap_content"
                 android:text="downloaded"
                 android:textColor="#fff"
-                android:background="#669900"
-                android:padding="5dp"
+                android:background="#797979"
+                android:padding="8dp"
                 android:textSize="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
@@ -47,6 +47,26 @@
                 android:layout_alignParentBottom="true"
                 android:textAlignment="gravity"
                 android:gravity="center_vertical"
+                android:id="@+id/song_status"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/song_status"
+                android:layout_alignParentBottom="true"
+                android:layout_marginLeft="10dp"
+                android:textAlignment="gravity"
+                android:gravity="center_vertical"
+                android:padding="8dp"
+                android:background="#0099cc"
+                android:textColor="#fff"
+                android:textSize="10dp"
+                android:text="Download song"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:onClick="downloadSong"
+                android:id="@+id/song_download_action"
                 />
 
             <TextView
@@ -54,15 +74,17 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"
+                android:layout_marginLeft="10dp"
                 android:textAlignment="gravity"
                 android:gravity="center_vertical"
-                android:padding="5dp"
-                android:background="#0099cc"
+                android:padding="8dp"
+                android:background="#FF4444"
                 android:textColor="#fff"
                 android:textSize="10dp"
-                android:text="Download song"
+                android:text="View on YouTube"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
+                android:id="@+id/youtube_view"
                 />
             </RelativeLayout>
         </LinearLayout>

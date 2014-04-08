@@ -15,9 +15,9 @@ public class UserFunctions {
 
     // Testing in localhost using wamp or xampp
     // use http://10.0.2.2/ to connect to your localhost ie http://localhost/
-    private static String loginURL = "http://stardust.alexandrulamba.com/youtube2mp3/api";
+    private final static String API_HOST = "http://10.42.0.1/api";
 
-    private static String login_tag = "login";
+    private final static String login_tag = "login";
 
     // constructor
     public UserFunctions(){
@@ -34,7 +34,7 @@ public class UserFunctions {
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("user", email));
         params.add(new BasicNameValuePair("pass", password));
-        JSONObject json = jsonParser.getJSONFromUrl(loginURL, params);
+        JSONObject json = jsonParser.getJSONFromUrl(API_HOST, params);
         //Return result
         return json;
     }
