@@ -73,8 +73,8 @@ public class SinglePlaylistAcvtivity extends ActionBarActivity {
     private static final String S_STATUS = "is_downloaded";
     private static final String S_VID = "video_id";
 
-    private final String API_HOST = "http://10.42.0.1/api/";
-    private final String HOST = "http://10.42.0.1/";
+    private final String API_HOST = "http://beta.zonglist.com/api/";
+    private final String HOST = "http://beta.zonglist.com/";
 
     public ProgressDialog progress1,progress2;
 

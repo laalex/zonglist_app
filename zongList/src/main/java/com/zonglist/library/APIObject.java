@@ -27,7 +27,7 @@ import android.content.Context;
 import android.util.Log;
 
 public class APIObject{
-    private final String API_HOST = "http://10.42.0.1/api/";
+    private final String API_HOST = "http://beta.zonglist.com/api/";
     Context context;
     private JSONParser jsonParser;
     DatabaseHandler db;

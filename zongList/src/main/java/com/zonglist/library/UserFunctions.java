@@ -15,7 +15,7 @@ public class UserFunctions {
 
     // Testing in localhost using wamp or xampp
     // use http://10.0.2.2/ to connect to your localhost ie http://localhost/
-    private final static String API_HOST = "http://10.42.0.1/api";
+    private final static String API_HOST = "http://beta.zonglist.com/api";
 
     private final static String login_tag = "login";
 
